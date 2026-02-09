@@ -104,7 +104,7 @@ pre {
 // DATOS (categorías previas)
 // ======================
 const quienSoy = [
-{p:"Con la quijada de un asno di muerte a mil hombres.",r:"Sansón"},
+{p:"Con la quijada de un asno di muerte a mil hombres.",r:"Samsón"},
 {p:"Mi abuela me quería matar.",r:"Joás"},
 {p:"Una canasta se convirtió en una pequeña barca para mi.",r:"Moisés"},
 {p:"Escondí 200 siclos de plata, 50 siclos de oro y un manto babilónico.",r:"Acán"},
@@ -150,9 +150,9 @@ const quienSoy = [
 {p:"Hice que el sol se detuviera por el poder de Dios.",r:"Josué"},
 {p:"Dios mismo me sepultó.",r:"Moisés"},
 {p:"Aunque no era sacerdote se me permitió hacer holocaustos.",r:"Samuel"},
-{p:"Por 20 años juzgué, pero con mi muerte más enemigos maté.",r:"Sansón"},
+{p:"Por 20 años juzgué, pero con mi muerte más enemigos maté.",r:"Samsón"},
 {p:"Mi hermano habló por mí.",r:"Moisés"},
-{p:"Con pandero y danza dirigía a las mujeres en alabanza.",r:"María"},
+{p:"Con pandero y danza dirigía a las mujeres en alabanza.",r:"Miriam"},
 {p:"Con mi mejor amigo caminé cada día y Él me llevó.",r:"Enoc"},
 {p:"Tres veces traté de maldecir al pueblo de Israel.",r:"Balaam"},
 {p:"Mi vestido era de pelo de camello, comía langostas y miel.",r:"Juan el Bautista"},
@@ -366,7 +366,7 @@ const libros = [
 {orden:16, nombre:"NEHEMÍAS", caps:13},
 {orden:17, nombre:"ESTER", caps:10},
 {orden:18, nombre:"JOB", caps:42},
-{orden:19, nombre:"SALMO", caps:150},
+{orden:19, nombre:"SALMOS", caps:150},
 {orden:20, nombre:"PROVERBIOS", caps:31},
 {orden:21, nombre:"ECLESIASTÉS", caps:12},
 {orden:22, nombre:"CANTARES", caps:8},
@@ -451,14 +451,14 @@ const discipulado = [
 {orden:2, nombre:"Seguridad Eterna", cita:"Romanos 8:38-39"},
 {orden:3, nombre:"La Palabra de Dios", cita:"2 Timoteo 3:16-17"},
 {orden:4, nombre:"Oración", cita:"Filipenses 4:6"},
-{orden:5, nombre:"La Trinidad Santa", cita:"2 Corintios 13:14"},
+{orden:5, nombre:"Trinidad Santa", cita:"2 Corintios 13:14"},
 {orden:6, nombre:"La batalla espiritual", cita:"Gálatas 5:16"},
 {orden:7, nombre:"La iglesia local", cita:"Efesios 4:12"},
 {orden:8, nombre:"El bautismo y la cena del Señor", cita:"1 Corintios 12:13"},
 {orden:9, nombre:"Administrando los recursos", cita:"2 Corintios 9:7"},
 {orden:10, nombre:"Evangelismo", cita:"2 Corintios 5:18"},
 {orden:11, nombre:"Prioridades bíblicas", cita:"Colosenses 3:23"},
-{orden:12, nombre:"El Tribunal de Cristo", cita:"2 Corintios 5:10"}
+{orden:12, nombre:"Tribunal de Cristo", cita:"2 Corintios 5:10"}
 ];
 
 // ======================
@@ -480,11 +480,10 @@ function iniciar(useErrorsOnly = false) {
     if (useErrorsOnly && errores.length === 0) return alert("No hay errores para practicar");
 
     if (useErrorsOnly) {
-        // reconstruir preguntas desde errores guardados
         preguntas = errores.map(e => ({p: e.p, respuestas: e.respuestas, source: e.source}));
         practicingErrors = true;
     } else {
-        errores = []; // resetear errores al iniciar una sesión nueva
+        errores = [];
         practicingErrors = false;
 
         if (c === "soy") {
@@ -503,111 +502,96 @@ function iniciar(useErrorsOnly = false) {
                 }
             });
         } else if (c === "visiones") {
-            // Construir pool con source labels y prompts
             const pool = [];
 
-            // For visiones: when presenting one field, pick exactly one of the other two as the expected answer
             visiones.forEach(v => {
-                // If prompt shows year, randomly choose to ask for lema OR cita (single expected)
+                // año -> pedir lema o cita (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Año ${v.anio}`,
                         prompt: `VISIÓN: Para el año ${v.anio}, escribe el lema.`,
                         respuestas: [v.lema]
                     });
                 } else {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Año ${v.anio}`,
                         prompt: `VISIÓN: Para el año ${v.anio}, escribe la cita bíblica.`,
                         respuestas: [v.cita]
                     });
                 }
 
-                // If prompt shows lema, ask for exactly one: año OR cita
+                // lema -> pedir año o cita (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Lema "${v.lema}"`,
                         prompt: `VISIÓN: Para el lema "${v.lema}", escribe el año.`,
                         respuestas: [String(v.anio)]
                     });
                 } else {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Lema "${v.lema}"`,
                         prompt: `VISIÓN: Para el lema "${v.lema}", escribe la cita bíblica.`,
                         respuestas: [v.cita]
                     });
                 }
 
-                // If prompt shows cita, ask for exactly one: año OR lema
+                // cita -> pedir año o lema (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Cita ${v.cita}`,
                         prompt: `VISIÓN: Para la cita ${v.cita}, escribe el año.`,
                         respuestas: [String(v.anio)]
                     });
                 } else {
                     pool.push({
                         source: "VISIÓN",
-                        p: `VISIÓN: Cita ${v.cita}`,
                         prompt: `VISIÓN: Para la cita ${v.cita}, escribe el lema.`,
                         respuestas: [v.lema]
                     });
                 }
             });
 
-            // For discipulado: when presenting one field, ask for exactly one of the other two
             discipulado.forEach(d => {
-                // If prompt shows orden, ask for nombre OR cita
+                // orden -> pedir nombre o cita (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Número ${d.orden}`,
                         prompt: `DISCIPULADO: Para el número ${d.orden}, escribe la lección.`,
                         respuestas: [d.nombre]
                     });
                 } else {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Número ${d.orden}`,
                         prompt: `DISCIPULADO: Para el número ${d.orden}, escribe la cita bíblica.`,
                         respuestas: [d.cita]
                     });
                 }
 
-                // If prompt shows nombre, ask for orden OR cita
+                // nombre -> pedir orden o cita (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Lección "${d.nombre}"`,
                         prompt: `DISCIPULADO: Para la lección "${d.nombre}", escribe el número.`,
                         respuestas: [String(d.orden)]
                     });
                 } else {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Lección "${d.nombre}"`,
                         prompt: `DISCIPULADO: Para la lección "${d.nombre}", escribe la cita bíblica.`,
                         respuestas: [d.cita]
                     });
                 }
 
-                // If prompt shows cita, ask for orden OR nombre
+                // cita -> pedir orden o nombre (solo una)
                 if (Math.random() < 0.5) {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Cita ${d.cita}`,
                         prompt: `DISCIPULADO: Para la cita ${d.cita}, escribe el número.`,
                         respuestas: [String(d.orden)]
                     });
                 } else {
                     pool.push({
                         source: "DISCIPULADO",
-                        p: `DISCIPULADO: Cita ${d.cita}`,
                         prompt: `DISCIPULADO: Para la cita ${d.cita}, escribe la lección.`,
                         respuestas: [d.nombre]
                     });
@@ -615,22 +599,19 @@ function iniciar(useErrorsOnly = false) {
             });
 
             shuffleArray(pool);
-            const seleccion = pool.slice(0, 25);
-            preguntas = seleccion.map(item => {
-                // show the prompt prefixed with the source label (already included in prompt)
-                const preguntaTexto = item.prompt;
-                return { p: preguntaTexto, respuestas: item.respuestas, source: item.source };
-            });
+            const seleccion = pool.slice(0, 25); // **solo** en esta categoría limitamos a 25
+            preguntas = seleccion.map(item => ({ p: item.prompt, respuestas: item.respuestas, source: item.source }));
         } else {
             preguntas = [];
         }
     }
 
-    // Si no es la categoría visiones y preguntas ya están en formato {p,respuestas}, mezclarlas y limitar a 25
-    if (!practicingErrors && document.getElementById("categoria").value !== "visiones") {
-        shuffleArray(preguntas);
+    // Mezclar preguntas siempre, pero limitar a 25 únicamente si la categoría seleccionada es "visiones"
+    shuffleArray(preguntas);
+    if (!practicingErrors && c === "visiones") {
         if (preguntas.length > 25) preguntas = preguntas.slice(0, 25);
     }
+    // Para las demás categorías no se aplica el recorte: mantienen su total original
 
     if (preguntas.length === 0) return alert("No hay preguntas para esa categoría");
 
@@ -765,7 +746,6 @@ function finalizar() {
     if (errores.length > 0) {
         const btn = document.getElementById("practicarBtn");
         btn.addEventListener("click", function() {
-            // preparar preguntas solo con los errores (sin duplicar)
             const erroresParaPracticar = errores.map(e => ({p: e.p, respuestas: e.respuestas, source: e.source}));
             preguntas = erroresParaPracticar;
             i = 0;
