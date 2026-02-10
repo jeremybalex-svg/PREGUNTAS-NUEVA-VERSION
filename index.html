@@ -472,6 +472,29 @@ let respondido = false;
 let practicingErrors = false;
 let totalPreguntas = 0;
 
+/*
+  Normalización mejorada:
+  - convierte a minúsculas
+  - elimina acentos
+  - elimina signos de puntuación innecesarios (mantiene dígitos y letras)
+  - elimina artículos en español (el, la, los, las, un, una, unos, unas, al, del, lo)
+  - colapsa espacios
+*/
+function normalizar(texto) {
+    if (texto === null || texto === undefined) return "";
+    let s = texto.toString().toLowerCase();
+    // quitar acentos
+    s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // reemplazar caracteres de puntuacion por espacio (excepto dígitos y letras)
+    s = s.replace(/[^a-z0-9\s:]/g, " ");
+    // eliminar artículos comunes en español (palabras completas)
+    // lista: el, la, los, las, un, una, unos, unas, al, del, lo
+    s = s.replace(/\b(el|la|los|las|un|una|unos|unas|al|del|lo)\b/g, " ");
+    // colapsar múltiples espacios y trim
+    s = s.replace(/\s+/g, " ").trim();
+    return s;
+}
+
 function iniciar(useErrorsOnly = false) {
     const categoriaEl = document.getElementById("categoria");
     const c = categoriaEl ? categoriaEl.value : "";
@@ -599,19 +622,19 @@ function iniciar(useErrorsOnly = false) {
             });
 
             shuffleArray(pool);
-            const seleccion = pool.slice(0, 25); // **solo** en esta categoría limitamos a 25
+            const seleccion = pool.slice(0, 25); // límite solo para esta categoría
             preguntas = seleccion.map(item => ({ p: item.prompt, respuestas: item.respuestas, source: item.source }));
         } else {
             preguntas = [];
         }
     }
 
-    // Mezclar preguntas siempre, pero limitar a 25 únicamente si la categoría seleccionada es "visiones"
+    // Mezclar preguntas siempre; limitar a 25 únicamente si la categoría es "visiones"
     shuffleArray(preguntas);
-    if (!practicingErrors && c === "visiones") {
+    const categoriaActual = document.getElementById("categoria") ? document.getElementById("categoria").value : "";
+    if (!practicingErrors && categoriaActual === "visiones") {
         if (preguntas.length > 25) preguntas = preguntas.slice(0, 25);
     }
-    // Para las demás categorías no se aplica el recorte: mantienen su total original
 
     if (preguntas.length === 0) return alert("No hay preguntas para esa categoría");
 
@@ -663,32 +686,29 @@ function mostrar() {
     document.getElementById("pregunta").innerText = preguntas[i].p;
 }
 
-function normalizar(texto) {
-    return texto === null || texto === undefined ? "" :
-        texto.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-}
-
 function verificar() {
     if (respondido) return;
 
     const inputEl = document.getElementById("respuestaUsuario");
     if (!inputEl) return;
     const userRaw = inputEl.value;
-    const user = normalizar(userRaw);
-    const respuestasCorrectas = preguntas[i].respuestas.map(r => normalizar(r));
+    const userNorm = normalizar(userRaw);
+
+    // Normalizar todas las respuestas correctas y comparar
+    const respuestasCorrectasNorm = preguntas[i].respuestas.map(r => normalizar(r));
     const feedback = document.getElementById("feedback");
 
     inputEl.disabled = true;
     respondido = true;
 
-    // Aceptar si el usuario coincide con la única respuesta correcta (normalizada)
-    let esCorrecto = respuestasCorrectas.includes(user);
+    // Comparación estricta sobre la versión normalizada (sin artículos)
+    let esCorrecto = respuestasCorrectasNorm.includes(userNorm);
 
-    // Si la respuesta correcta es numérica y el usuario escribió el número con espacios o texto, aceptarlo
+    // Si la respuesta correcta es numérica y el usuario escribió el número con texto o espacios, aceptarlo
     if (!esCorrecto) {
-        for (const rc of respuestasCorrectas) {
+        for (const rc of respuestasCorrectasNorm) {
             if (/^\d+$/.test(rc)) {
-                const userDigits = user.replace(/\D+/g, "");
+                const userDigits = (userNorm || "").replace(/\D+/g, "");
                 if (userDigits === rc) { esCorrecto = true; break; }
             }
         }
@@ -699,7 +719,6 @@ function verificar() {
         feedback.innerHTML = "✔ Correcto";
         feedback.className = "correcto";
     } else {
-        // Guardar pregunta y la respuesta original para mostrar luego
         errores.push({ index: i, p: preguntas[i].p, respuestas: preguntas[i].respuestas, source: preguntas[i].source || "" });
         feedback.innerHTML = `✘ Incorrecto<br>Respuesta correcta: ${preguntas[i].respuestas.join(" / ")}`;
         feedback.className = "incorrecto";
